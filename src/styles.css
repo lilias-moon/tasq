@@ -1,0 +1,250 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #1a1a2e;
+  background-image: radial-gradient(ellipse at 20% 50%, #16213e 0%, #1a1a2e 50%, #0f3460 100%);
+  min-height: 100vh;
+  color: #e2e8f0;
+}
+
+.app {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: #a78bfa;
+}
+
+.stats {
+  display: flex;
+  gap: 8px;
+}
+
+.stat {
+  background: rgba(255, 255, 255, 0.08);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.stat b {
+  color: #e2e8f0;
+  font-weight: 500;
+}
+
+.add-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: rgba(255, 255, 255, 0.06);
+  border: 0.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.add-form input {
+  flex: 1;
+  min-width: 120px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #e2e8f0;
+  outline: none;
+}
+
+.add-form input::placeholder {
+  color: #64748b;
+}
+
+.add-form input:focus {
+  border-color: rgba(167, 139, 250, 0.5);
+}
+
+.add-form button {
+  background: rgba(167, 139, 250, 0.2);
+  border: 0.5px solid rgba(167, 139, 250, 0.4);
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 13px;
+  color: #a78bfa;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.add-form button:hover {
+  background: rgba(167, 139, 250, 0.35);
+}
+
+.legend {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot.green  { background: #22c55e; }
+.dot.yellow { background: #f59e0b; }
+.dot.red    { background: #ef4444; }
+.dot.purple { background: #a78bfa; }
+.dot.gray   { background: #64748b; }
+
+#empty-msg {
+  text-align: center;
+  color: #475569;
+  font-size: 13px;
+  padding: 3rem 0;
+}
+
+.task {
+  border-radius: 12px;
+  border-left: 4px solid;
+  border-top: 0.5px solid rgba(255, 255, 255, 0.12);
+  border-right: 0.5px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
+  padding: 0.75rem 1rem;
+  margin-bottom: 6px;
+  cursor: grab;
+  transition: transform 0.15s, opacity 0.2s;
+  position: relative;
+  backdrop-filter: blur(8px);
+}
+
+.task:active { cursor: grabbing; }
+.task.dragging { opacity: 0.4; }
+.task.over { transform: scaleY(1.03); }
+.task.done { opacity: 0.45; }
+
+.task-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.task-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #e2e8f0;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.task.done .task-name {
+  text-decoration: line-through;
+  color: #475569;
+}
+
+.task-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.task-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 4px;
+  color: #64748b;
+  font-size: 13px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.task-actions button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+}
+
+.task-meta {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.meta-item {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.deadline-badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.edit-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.edit-row input {
+  flex: 1;
+  min-width: 100px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #e2e8f0;
+  outline: none;
+}
+
+.edit-row button {
+  background: rgba(255, 255, 255, 0.08);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+.stack-idx {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  font-size: 10px;
+  color: #334155;
+}

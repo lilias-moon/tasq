@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tasq</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <div class="header">
+        <h1>tasq</h1>
+        <div class="stats">
+          <div class="stat">合計 <b id="s-total">0</b></div>
+          <div class="stat">完了 <b id="s-done">0</b></div>
+          <div class="stat">期限切れ <b id="s-over">0</b></div>
+        </div>
+      </div>
+
+      <div class="add-form">
+        <input type="text" id="inp-name" placeholder="タスク名" />
+        <input type="date" id="inp-deadline" />
+        <button id="btn-add">追加</button>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="dot green"></div>余裕あり（7日以上）</div>
+        <div class="legend-item"><div class="dot yellow"></div>注意（3〜6日）</div>
+        <div class="legend-item"><div class="dot red"></div>緊急（1〜2日）</div>
+        <div class="legend-item"><div class="dot purple"></div>期限切れ</div>
+        <div class="legend-item"><div class="dot gray"></div>期限なし</div>
+      </div>
+
+      <div id="stack-wrap">
+        <div id="empty-msg">タスクを追加してスタックを積み上げよう！</div>
+      </div>
+    </div>
+    <script src="main.js"></script>
+  </body>
+</html>
