@@ -9,7 +9,12 @@ struct Task {
     name: String,
     added: String,
     deadline: Option<String>,
+    time: Option<String>,
+    color: Option<String>,
     done: bool,
+    x: Option<f64>,
+    y: Option<f64>,
+    angle: Option<f64>,
 }
 
 fn data_path(app: &tauri::AppHandle) -> PathBuf {
@@ -44,4 +49,3 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-
