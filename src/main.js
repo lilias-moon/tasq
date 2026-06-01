@@ -420,6 +420,12 @@ function togglePhysics() {
     canvasWrapEl.style.display = 'block';
     listView.style.display = 'none';
     document.getElementById('task-labels').innerHTML = '';
+    // ブロックがないタスクを追加
+    tasks.forEach(task => {
+      if (!taskBodies[task.id]) {
+        addBlock(task);
+      }
+    });
     Object.values(taskBodies).forEach(body => {
       Body.setStatic(body, false);
       Body.setVelocity(body, { x: 0, y: 0 });
@@ -527,8 +533,20 @@ window.addEventListener('resize', () => {
   render.canvas.width = w;
   render.canvas.height = h;
   createBounds();
-});
 
+  // 画面外に出たブロックを画面内に戻す
+  tasks.forEach(task => {
+    const body = taskBodies[task.id];
+    if (!body) return;
+    const { x, y } = body.position;
+    const clampedX = Math.max(BLOCK_W/2, Math.min(w - BLOCK_W/2, x));
+    const clampedY = Math.min(h - BLOCK_H/2, y);
+    if (clampedX !== x || clampedY !== y) {
+      Body.setPosition(body, { x: clampedX, y: clampedY });
+      Body.setVelocity(body, { x: 0, y: 0 });
+    }
+  });
+});
 // =========================================
 // タスク追加
 // =========================================
