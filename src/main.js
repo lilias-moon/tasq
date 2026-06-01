@@ -40,10 +40,10 @@ let floor, wallL, wallR, ceiling;
 function createBounds() {
   if (floor) World.remove(world, [floor, wallL, wallR, ceiling]);
   const { w, h } = getSize();
-  floor   = Bodies.rectangle(w/2, h+25,  w+100, 50, { isStatic:true, render:{fillStyle:'transparent'} });
-  wallL   = Bodies.rectangle(-25, h/2,   50, h+100, { isStatic:true, render:{fillStyle:'transparent'} });
-  wallR   = Bodies.rectangle(w+25, h/2,  50, h+100, { isStatic:true, render:{fillStyle:'transparent'} });
-  ceiling = Bodies.rectangle(w/2, -200,  w+100, 50, { isStatic:true, render:{fillStyle:'transparent'} });
+  floor = Bodies.rectangle(w / 2, h + 25, w + 100, 50, { isStatic: true, render: { fillStyle: 'transparent' } });
+  wallL = Bodies.rectangle(-25, h / 2, 50, h + 100, { isStatic: true, render: { fillStyle: 'transparent' } });
+  wallR = Bodies.rectangle(w + 25, h / 2, 50, h + 100, { isStatic: true, render: { fillStyle: 'transparent' } });
+  ceiling = Bodies.rectangle(w / 2, -200, w + 100, 50, { isStatic: true, render: { fillStyle: 'transparent' } });
   World.add(world, [floor, wallL, wallR, ceiling]);
 }
 createBounds();
@@ -59,31 +59,31 @@ const BLOCK_W = 260;
 const BLOCK_H = 80;
 
 function hexToRgba(hex, alpha) {
-  const r = parseInt(hex.slice(1,3), 16);
-  const g = parseInt(hex.slice(3,5), 16);
-  const b = parseInt(hex.slice(5,7), 16);
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
 function getDaysToDeadline(deadline) {
   if (!deadline) return null;
-  const now = new Date(); now.setHours(0,0,0,0);
-  const d = new Date(deadline); d.setHours(0,0,0,0);
-  return Math.round((d - now) / (1000*60*60*24));
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const d = new Date(deadline); d.setHours(0, 0, 0, 0);
+  return Math.round((d - now) / (1000 * 60 * 60 * 24));
 }
 
 function deadlineBadgeText(task) {
   const days = getDaysToDeadline(task.deadline);
   if (days === null) return null;
-  if (days < 0)   return { txt:`${Math.abs(days)}日超過`, color:'rgba(167,139,250,0.35)' };
-  if (days === 0) return { txt:'今日が期限',              color:'rgba(239,68,68,0.35)' };
-  if (days === 1) return { txt:'明日が期限',              color:'rgba(239,68,68,0.35)' };
-  if (days <= 6)  return { txt:`あと${days}日`,           color:'rgba(245,158,11,0.35)' };
-  return                 { txt:`あと${days}日`,           color:'rgba(34,197,94,0.35)' };
+  if (days < 0) return { txt: `${Math.abs(days)}日超過`, color: 'rgba(167,139,250,0.35)' };
+  if (days === 0) return { txt: '今日が期限', color: 'rgba(239,68,68,0.35)' };
+  if (days === 1) return { txt: '明日が期限', color: 'rgba(239,68,68,0.35)' };
+  if (days <= 6) return { txt: `あと${days}日`, color: 'rgba(245,158,11,0.35)' };
+  return { txt: `あと${days}日`, color: 'rgba(34,197,94,0.35)' };
 }
 
 function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // =========================================
@@ -91,7 +91,7 @@ function escHtml(s) {
 // =========================================
 function addBlock(task) {
   const { w } = getSize();
-  const x = task.x ?? (Math.random() * (w - BLOCK_W) + BLOCK_W/2);
+  const x = task.x ?? (Math.random() * (w - BLOCK_W) + BLOCK_W / 2);
   const y = task.y ?? -BLOCK_H;
   const color = task.color || '#a78bfa';
 
@@ -141,29 +141,60 @@ function updateLabels() {
     const { x, y } = body.position;
     const angle = body.angle;
     label.style.left = x + 'px';
-    label.style.top  = y + 'px';
+    label.style.top = y + 'px';
     label.style.transform = `translate(-50%,-50%) rotate(${angle}rad)`;
     label.style.opacity = task.done ? '0.4' : '1';
     label.style.width = BLOCK_W + 'px';
 
     const isSelected = task.id === selectedTaskId;
-    label.style.boxShadow = isSelected ? '0 0 0 2px rgba(255,255,255,0.9), 0 0 12px rgba(255,255,255,0.3)' : 'none';
-    label.style.borderRadius = '6px';
+
+    // ブロック本体のハイライト
+    if (body) {
+      if (isSelected) {
+        body.render.strokeStyle = '#ffffff';
+        body.render.lineWidth = 3;
+      } else {
+        body.render.strokeStyle = task.color || '#a78bfa';
+        body.render.lineWidth = 2;
+      }
+    }
+
+    // ラベルの後光
+    
 
     const badge = deadlineBadgeText(task);
     const timeStr = task.time ? ` ${task.time}` : '';
 
     label.innerHTML = `
-      <div class="task-label-name" style="text-decoration:${task.done?'line-through':'none'}">
+      <div class="task-label-name" style="text-decoration:${task.done ? 'line-through' : 'none'}">
         ${escHtml(task.name)}
       </div>
-      ${task.deadline ? `<div class="task-label-meta">📅 ${task.deadline.replace(/-/g,'/')}${timeStr}</div>` : ''}
+      ${task.deadline ? `<div class="task-label-meta">📅 ${task.deadline.replace(/-/g, '/')}${timeStr}</div>` : ''}
       ${badge ? `<span class="task-label-badge" style="background:${badge.color}">${badge.txt}</span>` : ''}
     `;
 
-    label.onclick = (e) => {
-      e.stopPropagation();
-      selectedTaskId = (selectedTaskId === task.id) ? null : task.id;
+    let mouseDownPos = null;
+
+    label.addEventListener('mousedown', (e) => {
+      mouseDownPos = { x: e.clientX, y: e.clientY };
+    });
+
+    label.addEventListener('mouseup', (e) => {
+      if (!mouseDownPos) return;
+      const dx = e.clientX - mouseDownPos.x;
+      const dy = e.clientY - mouseDownPos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 5) {
+        e.stopPropagation();
+        selectedTaskId = (selectedTaskId === task.id) ? null : task.id;
+      }
+      mouseDownPos = null;
+    });
+
+    label.oncontextmenu = (e) => {
+      e.preventDefault();
+      selectedTaskId = task.id;
+      showContextMenu(e.clientX, e.clientY, task.id);
     };
 
     label.oncontextmenu = (e) => {
@@ -215,14 +246,14 @@ function renderList() {
       <div class="list-task-top">
         <div class="list-task-name">${escHtml(task.name)}</div>
         <div class="list-task-actions">
-          <button onclick="toggleDone(${task.id})" title="${task.done?'未完了に戻す':'完了にする'}">${task.done?'↩':'✓'}</button>
+          <button onclick="toggleDone(${task.id})" title="${task.done ? '未完了に戻す' : '完了にする'}">${task.done ? '↩' : '✓'}</button>
           <button onclick="openPanel(${task.id})" title="編集">✎</button>
           <button onclick="deleteTask(${task.id})" title="削除" style="color:#ef4444;">✕</button>
         </div>
       </div>
       <div class="list-task-meta">
         <span class="list-meta-item">🕐 ${getDaysSinceAdded(task.added)}日前に追加</span>
-        ${task.deadline ? `<span class="list-meta-item">📅 ${task.deadline.replace(/-/g,'/')}${timeStr}</span>` : ''}
+        ${task.deadline ? `<span class="list-meta-item">📅 ${task.deadline.replace(/-/g, '/')}${timeStr}</span>` : ''}
         ${badge ? `<span class="task-label-badge" style="background:${badge.color};color:#fff;">${badge.txt}</span>` : ''}
       </div>
     `;
@@ -232,9 +263,9 @@ function renderList() {
 }
 
 function getDaysSinceAdded(added) {
-  const now = new Date(); now.setHours(0,0,0,0);
-  const d = new Date(added); d.setHours(0,0,0,0);
-  return Math.round((now - d) / (1000*60*60*24));
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const d = new Date(added); d.setHours(0, 0, 0, 0);
+  return Math.round((now - d) / (1000 * 60 * 60 * 24));
 }
 
 function getFilteredTasks() {
@@ -335,11 +366,11 @@ function openPanel(taskId) {
     <h3>タスクを編集</h3>
     <input type="text" id="p-name" value="${escHtml(task.name)}" placeholder="タスク名" />
     <div class="task-panel-row">
-      <input type="date" id="p-deadline" value="${task.deadline||''}" />
-      <input type="time" id="p-time" value="${task.time||''}" />
+      <input type="date" id="p-deadline" value="${task.deadline || ''}" />
+      <input type="time" id="p-time" value="${task.time || ''}" />
     </div>
     <div class="task-panel-row" style="align-items:center;gap:10px;">
-      <input type="color" id="p-color" value="${task.color||'#a78bfa'}" style="width:48px;height:36px;padding:2px;border-radius:8px;cursor:pointer;border:0.5px solid rgba(255,255,255,0.15);" />
+      <input type="color" id="p-color" value="${task.color || '#a78bfa'}" style="width:48px;height:36px;padding:2px;border-radius:8px;cursor:pointer;border:0.5px solid rgba(255,255,255,0.15);" />
       <span style="font-size:12px;color:#64748b;">ブロックの色</span>
     </div>
     <div class="task-panel-actions">
@@ -366,8 +397,8 @@ function savePanel(taskId) {
   const name = document.getElementById('p-name').value.trim();
   if (name) task.name = name;
   task.deadline = document.getElementById('p-deadline').value || null;
-  task.time     = document.getElementById('p-time').value || null;
-  task.color    = document.getElementById('p-color').value;
+  task.time = document.getElementById('p-time').value || null;
+  task.color = document.getElementById('p-color').value;
 
   const body = taskBodies[task.id];
   if (body) {
@@ -514,8 +545,8 @@ function applyFilter(filter) {
 // =========================================
 function updateStats() {
   document.getElementById('s-total').textContent = tasks.length;
-  document.getElementById('s-done').textContent  = tasks.filter(t => t.done).length;
-  document.getElementById('s-over').textContent  = tasks.filter(t => {
+  document.getElementById('s-done').textContent = tasks.filter(t => t.done).length;
+  document.getElementById('s-over').textContent = tasks.filter(t => {
     const d = getDaysToDeadline(t.deadline);
     return d !== null && d < 0 && !t.done;
   }).length;
@@ -539,8 +570,8 @@ window.addEventListener('resize', () => {
     const body = taskBodies[task.id];
     if (!body) return;
     const { x, y } = body.position;
-    const clampedX = Math.max(BLOCK_W/2, Math.min(w - BLOCK_W/2, x));
-    const clampedY = Math.min(h - BLOCK_H/2, y);
+    const clampedX = Math.max(BLOCK_W / 2, Math.min(w - BLOCK_W / 2, x));
+    const clampedY = Math.min(h - BLOCK_H / 2, y);
     if (clampedX !== x || clampedY !== y) {
       Body.setPosition(body, { x: clampedX, y: clampedY });
       Body.setVelocity(body, { x: 0, y: 0 });
@@ -554,9 +585,9 @@ function addTask() {
   const name = document.getElementById('inp-name').value.trim();
   if (!name) return;
   const deadline = document.getElementById('inp-deadline').value || null;
-  const time     = document.getElementById('inp-time').value || null;
-  const color    = document.getElementById('inp-color').value;
-  const today    = new Date().toISOString().split('T')[0];
+  const time = document.getElementById('inp-time').value || null;
+  const color = document.getElementById('inp-color').value;
+  const today = new Date().toISOString().split('T')[0];
 
   const task = { id: nextId++, name, added: today, deadline, time, color, done: false, x: null, y: null, angle: null };
   tasks.unshift(task);
