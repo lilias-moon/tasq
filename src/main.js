@@ -420,13 +420,15 @@ function toggleDone(taskId) {
   const task = tasks.find(t => t.id === taskId);
   if (task) {
     task.done = !task.done;
+    if (task.done) {
+      invoke('show_notification', { title: '✓ タスク完了', body: escHtml(task.name) });
+    }
     buildMonthOptions();
     updateStats();
     if (!physicsEnabled) renderList();
     saveTasks();
   }
 }
-
 function deleteTask(taskId) {
   removeBlock(taskId);
   tasks = tasks.filter(t => t.id !== taskId);
@@ -638,9 +640,26 @@ async function init() {
   `;
   physicsBtn.onclick = togglePhysics;
   document.querySelector('.sidebar-stats').before(physicsBtn);
+
+  
 }
+
+// 期限チェック（1時間ごと）
+setInterval(() => {
+  tasks.forEach(task => {
+    if (task.done) return;
+    const days = getDaysToDeadline(task.deadline);
+    if (days === 0) {
+      invoke('show_notification', { title: '🔴 今日が期限', body: escHtml(task.name) });
+    } else if (days === 1) {
+      invoke('show_notification', { title: '🟠 明日が期限', body: escHtml(task.name) });
+    }
+  });
+}, 3600000);
 
 document.getElementById('btn-add').addEventListener('click', addTask);
 document.getElementById('inp-name').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+
+  // ...
 
 init();
