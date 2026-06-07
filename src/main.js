@@ -1,4 +1,5 @@
 const { invoke } = window.__TAURI__.core;
+const { sendNotification, isPermissionGranted, requestPermission } = window.__TAURI_PLUGIN_NOTIFICATION__;
 const { Engine, Render, Runner, Bodies, Body, World, Events, Mouse, MouseConstraint } = Matter;
 
 let tasks = [];
@@ -416,12 +417,19 @@ function savePanel(taskId) {
 // =========================================
 // タスク操作
 // =========================================
-function toggleDone(taskId) {
+async function toggleDone(taskId) {
   const task = tasks.find(t => t.id === taskId);
   if (task) {
     task.done = !task.done;
     if (task.done) {
-      invoke('show_notification', { title: '✓ タスク完了', body: escHtml(task.name) });
+      let permitted = await isPermissionGranted();
+      if (!permitted) {
+        const permission = await requestPermission();
+        permitted = permission === 'granted';
+      }
+      if (permitted) {
+        sendNotification({ title: '✓ タスク完了', body: task.name });
+      }
     }
     buildMonthOptions();
     updateStats();
@@ -645,17 +653,28 @@ async function init() {
 }
 
 // 期限チェック（1時間ごと）
-setInterval(() => {
-  tasks.forEach(task => {
-    if (task.done) return;
-    const days = getDaysToDeadline(task.deadline);
-    if (days === 0) {
-      invoke('show_notification', { title: '🔴 今日が期限', body: escHtml(task.name) });
-    } else if (days === 1) {
-      invoke('show_notification', { title: '🟠 明日が期限', body: escHtml(task.name) });
+tasks.forEach(task => {
+  if (task.done) return;
+  const days = getDaysToDeadline(task.deadline);
+  
+  // 日付ベースの通知
+  if (days === 0) {
+    sendNotification({ title: '🔴 今日が期限', body: task.name });
+  } else if (days === 1) {
+    sendNotification({ title: '🟠 明日が期限', body: task.name });
+  }
+
+  // 時間ベースの通知（期限の1時間前）
+  if (task.deadline && task.time) {
+    const now = new Date();
+    const deadlineDate = new Date(`${task.deadline}T${task.time}`);
+    const diffMs = deadlineDate - now;
+    const diffMin = Math.round(diffMs / 60000);
+    if (diffMin > 0 && diffMin <= 60) {
+      sendNotification({ title: '⏰ もうすぐ期限', body: `${task.name}（あと${diffMin}分）` });
     }
-  });
-}, 3600000);
+  }
+});
 
 document.getElementById('btn-add').addEventListener('click', addTask);
 document.getElementById('inp-name').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
