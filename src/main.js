@@ -618,6 +618,45 @@ function addTask() {
   saveTasks();
 }
 
+const SERVER_URL = 'http://192.168.1.3:3000';
+
+async function syncWithServer() {
+  try {
+    const res = await fetch(`${SERVER_URL}/tasks`);
+    if (!res.ok) return false;
+    const serverTasks = await res.json();
+    return serverTasks;
+  } catch {
+    return false;
+  }
+}
+
+async function pushTaskToServer(task) {
+  try {
+    await fetch(`${SERVER_URL}/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(task),
+    });
+  } catch { /* サーバーがなくても無視 */ }
+}
+
+async function updateTaskOnServer(task) {
+  try {
+    await fetch(`${SERVER_URL}/tasks/${task.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(task),
+    });
+  } catch { /* サーバーがなくても無視 */ }
+}
+
+async function deleteTaskOnServer(id) {
+  try {
+    await fetch(`${SERVER_URL}/tasks/${id}`, { method: 'DELETE' });
+  } catch { /* サーバーがなくても無視 */ }
+}
+
 // =========================================
 // 保存・読み込み
 // =========================================
