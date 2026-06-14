@@ -412,6 +412,7 @@ function savePanel(taskId) {
   updateStats();
   if (!physicsEnabled) renderList();
   saveTasks();
+  updateTaskOnServer(task);
 }
 
 // =========================================
@@ -444,6 +445,7 @@ function deleteTask(taskId) {
   buildMonthOptions();
   updateStats();
   if (!physicsEnabled) renderList();
+  deleteTaskOnServer(taskId);
   saveTasks();
 }
 
@@ -591,13 +593,13 @@ window.addEventListener('resize', () => {
 // =========================================
 // タスク追加
 // =========================================
-function addTask() {
+async function addTask() {
   const name = document.getElementById('inp-name').value.trim();
   if (!name) return;
   const deadline = document.getElementById('inp-deadline').value || null;
-  const time = document.getElementById('inp-time').value || null;
-  const color = document.getElementById('inp-color').value;
-  const today = new Date().toISOString().split('T')[0];
+  const time     = document.getElementById('inp-time').value || null;
+  const color    = document.getElementById('inp-color').value;
+  const today    = new Date().toISOString().split('T')[0];
 
   const task = { id: nextId++, name, added: today, deadline, time, color, done: false, x: null, y: null, angle: null };
   tasks.unshift(task);
@@ -616,6 +618,7 @@ function addTask() {
   document.getElementById('inp-time').value = '';
 
   saveTasks();
+  pushTaskToServer(task);
 }
 
 const SERVER_URL = 'http://192.168.1.3:3000';
