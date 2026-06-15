@@ -667,14 +667,33 @@ async function saveTasks() {
   await invoke('save_tasks', { tasks });
 }
 
-async function init() {
-  tasks = await invoke('load_tasks');
+
+  // サーバーから取得を試みる
+  async function init() {
+  const serverTasks = await syncWithServer();
+  if (serverTasks !== false) {
+    // サーバーに繋がった場合はサーバーのデータを使う
+    tasks = serverTasks;
+    // ローカルのタスクをサーバーに同期
+    if (tasks.length === 0) {
+      const localTasks = await invoke('load_tasks');
+      for (const task of localTasks) {
+        await pushTaskToServer(task);
+      }
+      tasks = await syncWithServer() || localTasks;
+    }
+  } else {
+    // サーバーに繋がらない場合はローカルを使う
+    tasks = await invoke('load_tasks');
+  }
+
   if (tasks.length > 0) {
     nextId = Math.max(...tasks.map(t => t.id)) + 1;
     tasks.forEach(task => addBlock(task));
   }
   buildMonthOptions();
   updateStats();
+  // 以下は変更なし...
 
   const physicsBtn = document.createElement('button');
   physicsBtn.id = 'btn-physics';
