@@ -628,8 +628,12 @@ async function syncWithServer() {
     const res = await fetch(`${SERVER_URL}/tasks`);
     if (!res.ok) return false;
     const serverTasks = await res.json();
+    document.getElementById('server-status').textContent = '● サーバー接続中';
+    document.getElementById('server-status').style.color = '#22c55e';
     return serverTasks;
   } catch {
+    document.getElementById('server-status').textContent = '● オフライン';
+    document.getElementById('server-status').style.color = '#475569';
     return false;
   }
 }
