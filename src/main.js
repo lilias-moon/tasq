@@ -618,8 +618,7 @@ async function addTask() {
   document.getElementById('inp-time').value = '';
 
   saveTasks();
-  pushTaskToServer(task);
-}
+  pushTaskToServer(task);}
 
 const SERVER_URL = 'http://localhost:3000';
 
