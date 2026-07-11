@@ -1,7 +1,3 @@
-const { invoke } = window.__TAURI__.core;
-const { sendNotification, isPermissionGranted, requestPermission } = window.__TAURI_PLUGIN_NOTIFICATION__;
-const { Engine, Render, Runner, Bodies, Body, World, Events, Mouse, MouseConstraint } = Matter;
-
 import {
   hexToRgba,
   escHtml,
@@ -9,6 +5,13 @@ import {
   deadlineBadgeText,
   getDaysSinceAdded,
 } from './js/utils.js';
+
+import { loadTasks, saveTasks as writeTasks } from './js/storage.js';
+
+const { sendNotification, isPermissionGranted, requestPermission } = window.__TAURI_PLUGIN_NOTIFICATION__;
+const { Engine, Render, Runner, Bodies, Body, World, Events, Mouse, MouseConstraint } = Matter;
+
+
 
 let tasks = [];
 let nextId = 1;
@@ -600,11 +603,11 @@ function addTask() {
 // 保存・読み込み
 // =========================================
 async function saveTasks() {
-  await invoke('save_tasks', { tasks });
+  await writeTasks(tasks);
 }
 
 async function init() {
-  tasks = await invoke('load_tasks');
+  tasks = await loadTasks();
   if (tasks.length > 0) {
     nextId = Math.max(...tasks.map(t => t.id)) + 1;
     tasks.forEach(task => addBlock(task));
