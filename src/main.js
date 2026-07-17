@@ -7,17 +7,17 @@ import {
 } from './js/utils.js';
 
 import { loadTasks, saveTasks as writeTasks } from './js/storage.js';
+import { state } from './js/state.js';
 
 const { sendNotification, isPermissionGranted, requestPermission } = window.__TAURI_PLUGIN_NOTIFICATION__;
 const { Engine, Render, Runner, Bodies, Body, World, Events, Mouse, MouseConstraint } = Matter;
 
 
 
-let tasks = [];
-let nextId = 1;
+
+
 let taskBodies = {};
-let selectedTaskId = null;
-let physicsEnabled = true;
+
 
 const canvasWrap = document.querySelector('.canvas-wrap');
 const canvas = document.getElementById('physics-canvas');
@@ -111,10 +111,10 @@ function removeBlock(taskId) {
 }
 
 function updateLabels() {
-  if (!physicsEnabled) return;
+  if (!state.physicsEnabled) return;
   const labelsDiv = document.getElementById('task-labels');
 
-  tasks.forEach(task => {
+  state.tasks.forEach(task => {
     const body = taskBodies[task.id];
     if (!body) return;
 
@@ -134,7 +134,7 @@ function updateLabels() {
     label.style.opacity = task.done ? '0.4' : '1';
     label.style.width = BLOCK_W + 'px';
 
-    const isSelected = task.id === selectedTaskId;
+    const isSelected = task.id === state.selectedTaskId;
 
     // ブロック本体のハイライト
     if (body) {
@@ -174,7 +174,7 @@ function updateLabels() {
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < 5) {
         e.stopPropagation();
-        selectedTaskId = (selectedTaskId === task.id) ? null : task.id;
+        state.selectedTaskId = (state.selectedTaskId === task.id) ? null : task.id;
       }
       mouseDownPos = null;
     });
@@ -196,8 +196,8 @@ function updateLabels() {
 Events.on(engine, 'afterUpdate', updateLabels);
 
 setInterval(() => {
-  if (!physicsEnabled) return;
-  tasks.forEach(task => {
+  if (!state.physicsEnabled) return;
+  state.tasks.forEach(task => {
     const body = taskBodies[task.id];
     if (!body) return;
     task.x = body.position.x;
@@ -254,7 +254,7 @@ function getFilteredTasks() {
   const activeItem = document.querySelector('.menu-item.active');
   const filter = activeItem?.dataset.filter || 'all';
 
-  return tasks.filter(task => {
+  return state.tasks.filter(task => {
     if (filter === 'overdue') {
       const d = getDaysToDeadline(task.deadline);
       return d !== null && d < 0 && !task.done;
@@ -274,7 +274,7 @@ function getFilteredTasks() {
 // =========================================
 function showContextMenu(cx, cy, taskId) {
   closeContextMenu();
-  const task = tasks.find(t => t.id === taskId);
+  const task = state.tasks.find(t => t.id === taskId);
   if (!task) return;
 
   const menu = document.createElement('div');
@@ -332,7 +332,7 @@ document.addEventListener('keydown', (e) => {
 // 編集パネル
 // =========================================
 function openPanel(taskId) {
-  const task = tasks.find(t => t.id === taskId);
+  const task = state.tasks.find(t => t.id === taskId);
   if (!task) return;
 
   closePanel();
@@ -374,7 +374,7 @@ function closePanel() {
 }
 
 function savePanel(taskId) {
-  const task = tasks.find(t => t.id === taskId);
+  const task = state.tasks.find(t => t.id === taskId);
   if (!task) return;
   const name = document.getElementById('p-name').value.trim();
   if (name) task.name = name;
@@ -391,7 +391,7 @@ function savePanel(taskId) {
   closePanel();
   buildMonthOptions();
   updateStats();
-  if (!physicsEnabled) renderList();
+  if (!state.physicsEnabled) renderList();
   saveTasks();
 }
 
@@ -399,7 +399,7 @@ function savePanel(taskId) {
 // タスク操作
 // =========================================
 async function toggleDone(taskId) {
-  const task = tasks.find(t => t.id === taskId);
+  const task = state.tasks.find(t => t.id === taskId);
   if (task) {
     task.done = !task.done;
     if (task.done) {
@@ -414,17 +414,17 @@ async function toggleDone(taskId) {
     }
     buildMonthOptions();
     updateStats();
-    if (!physicsEnabled) renderList();
+    if (!state.physicsEnabled) renderList();
     saveTasks();
   }
 }
 function deleteTask(taskId) {
   removeBlock(taskId);
-  tasks = tasks.filter(t => t.id !== taskId);
-  if (selectedTaskId === taskId) selectedTaskId = null;
+  state.tasks = state.tasks.filter(t => t.id !== taskId);
+  if (state.selectedTaskId === taskId) state.selectedTaskId = null;
   buildMonthOptions();
   updateStats();
-  if (!physicsEnabled) renderList();
+  if (!state.physicsEnabled) renderList();
   saveTasks();
 }
 
@@ -432,18 +432,18 @@ function deleteTask(taskId) {
 // 物理演算トグル
 // =========================================
 function togglePhysics() {
-  physicsEnabled = !physicsEnabled;
+  state.physicsEnabled = !state.physicsEnabled;
   const btn = document.getElementById('btn-physics');
   const canvasWrapEl = document.querySelector('.canvas-wrap');
   const listView = document.getElementById('list-view');
 
-  if (physicsEnabled) {
+  if (state.physicsEnabled) {
     engine.gravity.y = 1.5;
     canvasWrapEl.style.display = 'block';
     listView.style.display = 'none';
     document.getElementById('task-labels').innerHTML = '';
     // ブロックがないタスクを追加
-    tasks.forEach(task => {
+    state.tasks.forEach(task => {
       if (!taskBodies[task.id]) {
         addBlock(task);
       }
@@ -471,7 +471,7 @@ function buildMonthOptions() {
   const prev = sel.value;
   sel.innerHTML = '';
   const months = new Set();
-  tasks.forEach(task => {
+  state.tasks.forEach(task => {
     if (task.deadline && !task.done) {
       months.add(task.deadline.slice(0, 7));
     }
@@ -495,7 +495,7 @@ document.querySelectorAll('.menu-item').forEach(item => {
     const wrap = document.getElementById('month-select-wrap');
     wrap.style.display = item.dataset.filter === 'month' ? 'block' : 'none';
     applyFilter(item.dataset.filter);
-    if (!physicsEnabled) renderList();
+    if (!state.physicsEnabled) renderList();
   });
 });
 
@@ -503,13 +503,13 @@ document.getElementById('month-select')?.addEventListener('change', () => {
   const activeItem = document.querySelector('.menu-item.active');
   if (activeItem?.dataset.filter === 'month') {
     applyFilter('month');
-    if (!physicsEnabled) renderList();
+    if (!state.physicsEnabled) renderList();
   }
 });
 
 function applyFilter(filter) {
-  if (!physicsEnabled) return;
-  tasks.forEach(task => {
+  if (!state.physicsEnabled) return;
+  state.tasks.forEach(task => {
     const body = taskBodies[task.id];
     const label = document.getElementById('label-' + task.id);
     let visible = true;
@@ -557,7 +557,7 @@ window.addEventListener('resize', () => {
   createBounds();
 
   // 画面外に出たブロックを画面内に戻す
-  tasks.forEach(task => {
+  state.tasks.forEach(task => {
     const body = taskBodies[task.id];
     if (!body) return;
     const { x, y } = body.position;
@@ -580,10 +580,10 @@ function addTask() {
   const color = document.getElementById('inp-color').value;
   const today = new Date().toISOString().split('T')[0];
 
-  const task = { id: nextId++, name, added: today, deadline, time, color, done: false, x: null, y: null, angle: null };
-  tasks.unshift(task);
+  const task = { id: state.nextId++, name, added: today, deadline, time, color, done: false, x: null, y: null, angle: null };
+  state.tasks.unshift(task);
 
-  if (physicsEnabled) {
+  if (state.physicsEnabled) {
     addBlock(task);
   } else {
     renderList();
@@ -603,14 +603,14 @@ function addTask() {
 // 保存・読み込み
 // =========================================
 async function saveTasks() {
-  await writeTasks(tasks);
+  await writeTasks(state.tasks);
 }
 
 async function init() {
-  tasks = await loadTasks();
-  if (tasks.length > 0) {
-    nextId = Math.max(...tasks.map(t => t.id)) + 1;
-    tasks.forEach(task => addBlock(task));
+  state.tasks = await loadTasks();
+  if (state.tasks.length > 0) {
+    state.nextId = Math.max(...state.tasks.map(t => t.id)) + 1;
+    state.tasks.forEach(task => addBlock(task));
   }
   buildMonthOptions();
   updateStats();
@@ -634,7 +634,7 @@ async function init() {
 }
 
 // 期限チェック（1時間ごと）
-tasks.forEach(task => {
+state.tasks.forEach(task => {
   if (task.done) return;
   const days = getDaysToDeadline(task.deadline);
   
