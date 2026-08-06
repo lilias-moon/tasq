@@ -23,6 +23,20 @@ import {
 import { loadTasks, saveTasks as writeTasks } from './js/storage.js';
 import { state } from './js/state.js';
 
+import {
+  setAfterChange,
+  addTask,
+  deleteTask,
+  toggleDone,
+  saveTasks,
+} from './js/tasks.js';
+
+setAfterChange(() => {
+  buildMonthOptions();
+  updateStats();
+  if (!state.physicsEnabled) renderList();
+});
+
 
 
 const { sendNotification, isPermissionGranted, requestPermission } = window.__TAURI_PLUGIN_NOTIFICATION__;
@@ -330,35 +344,8 @@ function savePanel(taskId) {
 // =========================================
 // タスク操作
 // =========================================
-async function toggleDone(taskId) {
-  const task = state.tasks.find(t => t.id === taskId);
-  if (task) {
-    task.done = !task.done;
-    if (task.done) {
-      let permitted = await isPermissionGranted();
-      if (!permitted) {
-        const permission = await requestPermission();
-        permitted = permission === 'granted';
-      }
-      if (permitted) {
-        sendNotification({ title: '✓ タスク完了', body: task.name });
-      }
-    }
-    buildMonthOptions();
-    updateStats();
-    if (!state.physicsEnabled) renderList();
-    saveTasks();
-  }
-}
-function deleteTask(taskId) {
-  removeBlock(taskId);
-  state.tasks = state.tasks.filter(t => t.id !== taskId);
-  if (state.selectedTaskId === taskId) state.selectedTaskId = null;
-  buildMonthOptions();
-  updateStats();
-  if (!state.physicsEnabled) renderList();
-  saveTasks();
-}
+
+
 
 // =========================================
 // 物理演算トグル
@@ -479,39 +466,12 @@ function updateStats() {
 // =========================================
 // タスク追加
 // =========================================
-function addTask() {
-  const name = document.getElementById('inp-name').value.trim();
-  if (!name) return;
-  const deadline = document.getElementById('inp-deadline').value || null;
-  const time = document.getElementById('inp-time').value || null;
-  const color = document.getElementById('inp-color').value;
-  const today = new Date().toISOString().split('T')[0];
 
-  const task = { id: state.nextId++, name, added: today, deadline, time, color, done: false, x: null, y: null, angle: null };
-  state.tasks.unshift(task);
-
-  if (state.physicsEnabled) {
-    addBlock(task);
-  } else {
-    renderList();
-  }
-
-  buildMonthOptions();
-  updateStats();
-
-  document.getElementById('inp-name').value = '';
-  document.getElementById('inp-deadline').value = '';
-  document.getElementById('inp-time').value = '';
-
-  saveTasks();
-}
 
 // =========================================
 // 保存・読み込み
 // =========================================
-async function saveTasks() {
-  await writeTasks(state.tasks);
-}
+
 
 async function init() {
   state.tasks = await loadTasks();
@@ -563,6 +523,10 @@ state.tasks.forEach(task => {
     }
   }
 });
+
+window.toggleDone = toggleDone;
+window.deleteTask = deleteTask;
+window.openPanel = openPanel;
 
 document.getElementById('btn-add').addEventListener('click', addTask);
 document.getElementById('inp-name').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
