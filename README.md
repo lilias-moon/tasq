@@ -2,6 +2,8 @@
 
 [日本語](#日本語) | [English](#english) | [한국어](#한국어)
 
+英語・韓国語の説明は機械翻訳です。 / English and Korean sections are machine-translated. / 영어·한국어 설명은 기계 번역입니다.
+
 ---
 
 ## 日本語
@@ -43,6 +45,8 @@ npm run tauri dev
 
 ## English
 
+> This section is machine-translated.
+
 A local desktop task manager.  
 Built with Tauri 2, vanilla JS, and Matter.js (physics-block UI).
 
@@ -79,6 +83,8 @@ npm run tauri dev
 ---
 
 ## 한국어
+
+> 이 설명문은 기계 번역입니다.
 
 로컬에서 동작하는 데스크톱 작업 관리 앱입니다.  
 Tauri 2 + Vanilla JS + Matter.js(물리 블록 UI)로 구성되어 있습니다.
